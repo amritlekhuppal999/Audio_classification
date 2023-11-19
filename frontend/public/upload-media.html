@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <form 
+        id="media-form" 
+        action="#"
+        method="POST"
+        data-url="python-api-endpoint"
+        enctype="multipart/form-data">
+
+        <label for=""></label>
+        <input 
+            type="file" 
+            id="media-file"
+            name="media-file" 
+            class=""
+            accept="audio/*,video/*"
+        />
+
+        <!-- <input type="hidden" name="media-uri" id="media-uri" /> -->
+
+        <button type="button" id="upload-media">Submit</button>
+    </form>
+
+    <!-- preview window -->
+    <div class="preview">
+        <!-- one for video  -->
+
+        <!-- and one for audio  -->
+    </div>
+
+    <script>
+        const submit_btn = document.getElementById('upload-media');
+        let media_input_ele = document.getElementById('media-file');
+
+        media_input_ele.addEventListener('change', event =>{
+
+            let preview_div = document.getElementsByClassName('preview')[0];
+            preview_div.innerHTML = '<h3> SELECT A FILE Less than 5MB !!!</h3>';
+            // console.log(media_input_ele.value);
+            // console.log(media_input_ele.files);
+            let file_list = media_input_ele.files;
+
+            if(file_list[0].size > 0 && file_list[0].size < 5000000){
+                if(file_list[0].type.includes("video")){
+                    create_video_preview(file_list[0]);        
+                }
+
+                else if(file_list[0].type.includes("audio")){
+                    create_audio_preview(file_list[0]);        
+                }
+
+                else preview_div.innerHTML = '<h3> Invalid file type !!!</h3>';
+            }
+            // create_video_preview(file_list[0]);
+        });
+
+        // function to create video preview
+        async function create_video_preview(video_file){
+
+            // async function cause it took an oath to deal with a promise BITCH !!!
+
+            let preview_div = document.getElementsByClassName('preview')[0];
+            preview_div.innerHTML = '';
+
+            // video_file.name
+            // video_file.size
+            // video_file.type
+
+            let video_heading = document.createElement("h3");
+            video_heading.innerText = video_file.name;
+
+            // create the video element tag
+            let video_element = document.createElement('video');
+            video_element.width = "320";
+            video_element.height = "220";
+            video_element.controls = true;
+            
+            // create video ele tag child source
+            let video_source_ele = document.createElement('source');
+            video_source_ele.src = await generate_URI(video_file);
+            video_source_ele.type = video_file.type;
+            video_element.appendChild(video_source_ele);    // append to video ele
+
+            //SAVE MEDIA URI TO THE FORM FOR OTHER FUNCTIONS TO USE (NOT NEEDED)
+            // document.getElementById('media-uri').value = video_source_ele.src;
+
+            // video_element.textContext = video_file.name;
+
+            preview_div.appendChild(video_heading);
+            preview_div.appendChild(video_element);
+        }
+        
+        // function to create audio preview
+        async function create_audio_preview(audio_file){
+
+            // async function cause it took an oath to deal with a promise BITCH !!!
+
+            let preview_div = document.getElementsByClassName('preview')[0];
+            preview_div.innerHTML = '';
+
+            // audio_file.name
+            // audio_file.size
+            // audio_file.type
+
+            let audio_heading = document.createElement("h3");
+            audio_heading.innerText = audio_file.name;
+
+            // create the video element tag
+            let audio_element = document.createElement('audio');
+            audio_element.controls = true;
+
+            // create video ele tag child source
+            let audio_source_ele = document.createElement('source');
+            audio_source_ele.src = await generate_URI(audio_file);
+            audio_source_ele.type = audio_file.type;
+            audio_element.appendChild(audio_source_ele);    // append to video ele
+
+            //SAVE MEDIA URI TO THE FORM FOR OTHER FUNCTIONS TO USE (NOT NEEDED)
+            // document.getElementById('media-uri').value = audio_source_ele.src;
+
+            // audio_element.textContext = audio_file.name;
+
+            preview_div.appendChild(audio_heading);
+            preview_div.appendChild(audio_element);
+        }
+
+        // we gotta make it return a promise because of the asynch nature of the FileReader
+        function generate_URI(media_file){
+            // ITS A PROMISE BITCH !!!
+            return new Promise((resolve, reject) =>{
+
+                const reader = new FileReader();
+                // const baseURI = '';
+                reader.onload = event =>{
+                    // baseURI = event.target.result;
+                    resolve(event.target.result);
+                }
+                reader.onerror = event =>{
+                    reject(event.target.error);
+                }
+    
+                reader.readAsDataURL(media_file);
+            });
+
+        }
+
+
+
+
+    </script>
+
+    <!-- <script src="rest.js"></script> -->
+    <script src="../src/js/upload-media.js"></script>
+</body>
+</html>
