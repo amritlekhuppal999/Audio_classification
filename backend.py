@@ -22,6 +22,7 @@ import csv  # reading csv files
 
 import matplotlib.pyplot as plt  # for plotting graphs
 from IPython.display import Audio  # for playing audio files in notebooks
+import scipy as scipy
 from scipy.io import wavfile  # working with audio files
 
 # Load the Model from TensorFlow Hub.
@@ -61,8 +62,8 @@ def ensure_sample_rate(original_sample_rate, waveform,
 # Downloading and preparing the sound file
 # The expected audio file should be a mono wav file at 16kHz sample rate.
 
-def wav_preprocess(wav_file):
-    wav_file
+def wav_preprocess(wav_file_name):
+    #wav_file
     sample_rate, wav_data = wavfile.read(wav_file_name, 'rb')
     sample_rate, wav_data = ensure_sample_rate(sample_rate, wav_data)
 
@@ -131,6 +132,7 @@ def wave_chart(waveform):
     # Plot the waveform.
     plt.plot(waveform)
     plt.xlim([0, len(waveform)])
+    plt.show()
 
     return None
 
@@ -138,6 +140,7 @@ def spectrogram(spectrogram_np):
     # Plot the log-mel spectrogram (returned by the model)
 
     plt.imshow(spectrogram_np.T, aspect='auto', interpolation='nearest', origin='lower')
+    plt.show()
 
     return None
 
@@ -156,6 +159,7 @@ def graph(scores, scores_np):
     plt.yticks(yticks, [class_names[top_class_indices[x]] for x in yticks])
     _ = plt.ylim(-0.5 + np.array([top_n, 0]))
 
+    plt.show()
     return None
 
 
@@ -166,7 +170,8 @@ class_names = class_names_from_csv(class_map_path)
 
 # get the audio file from the front end
 # wav_file = audio file fetched from front end via flask
-wav_data = wav_preprocess(wav_file)
+wav_file_name = 'drill.wav'
+wav_data = wav_preprocess(wav_file_name)
 
 # output of the model
 infered_class, scores, scores_np, waveform, spectrogram_np = predict_class(wav_data)
