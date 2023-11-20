@@ -18,6 +18,8 @@ window.onload = ()=>{
 
     function formSubmit(upload_form){
 
+        document.getElementById('upload-media').disable = true;
+
         let media_input_ele = document.getElementById('media-file');
         let media_file = media_input_ele.files[0];
         let formData = new FormData();
@@ -30,10 +32,12 @@ window.onload = ()=>{
         //
         if(media_file==undefined || media_file.size == 0){
             document.getElementById('error-window').innerHTML = 'No file selected';
+            document.getElementById('upload-media').disable = false;
             return false;
         }
         if(media_file.size > 5000000){
             document.getElementById('error-window').innerHTML = 'File size greater than 5MB!';
+            document.getElementById('upload-media').disable = false;
             return false;
         }
 
@@ -61,14 +65,41 @@ window.onload = ()=>{
                     // return response.text();
                 }
                 else alert("Unable to submit form. Try again later.");
+                document.getElementById('upload-media').disable = false;
             })
             .then(data =>{
                 console.log(data);
-                document.getElementById('status-window').innerHTML = data.message;
+                img_charts = document.getElementById('image-charts');
+
+                let bar_chart_img = document.createElement('img');
+                bar_chart_img.src = data.plot_urls.bar_chart;
+
+                let waveform_img = document.createElement('img');
+                waveform_img.src = data.plot_urls.wave_chart;
+
+                let spectrogram_img = document.createElement('img');
+                spectrogram_img.src = data.plot_urls.spectrogram;
+
+                let graph_img = document.createElement('img');
+                graph_img.src = data.plot_urls.graph;
+
+                img_charts.appendChild(bar_chart_img);
+                img_charts.appendChild(waveform_img);
+                img_charts.appendChild(spectrogram_img);
+                img_charts.appendChild(graph_img);
+
+                document.getElementById('status-window').innerHTML = `
+                    <h3>${data.message}</h3>
+                    <h3>${data.Sample_rate}</h3>
+                    <h3>${data.duration}</h3>
+                    <h3>${data.size}</h3>
+                    <h3>${data.string1}</h3>
+                `;
             })
             .catch(error =>{
                 console.log('Something went wrong.', error);
                 document.getElementById('error-window').innerHTML = error;
+                document.getElementById('upload-media').disable = false;
             });
     }
 };

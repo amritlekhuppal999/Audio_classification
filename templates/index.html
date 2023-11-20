@@ -6,7 +6,18 @@
     <title>Document</title>
 </head>
 <body>
-    
+    <h1>
+        Audio Classification for construction sound
+    </h1>
+    <p>
+        This code takes in audio files in '.wav' format and predicts the class of sound it belongs to.
+        The network also outputs the confidence score of the audio file across different classes in the form of the bar chart.
+        It displays other useful information such as Mel-spectrogram.
+        The Network expects the signal to be of the length < 10s. Although, it still has to be tested for sound for longer length as well.
+        Preprocessing step has been added to convert stereo audio to mono audio.
+        <br/>
+        Note: After Submitting the file, it takes time to process, please refrain from submitting again.
+    </p>
     <form 
         id="media-form" 
         action="#"
@@ -20,7 +31,7 @@
             id="media-file"
             name="media-file" 
             class=""
-            accept="audio/*,video/*"
+            accept="audio/.wav"
         />
 
         <!-- <input type="hidden" name="media-uri" id="media-uri" /> -->
@@ -41,11 +52,16 @@
     <!-- display error here -->
     <div id="error-window" style="color:red;"></div>
 
+    <!-- displays waves and charts -->
+    <div id="image-charts"></div>
+
     <script>
         const submit_btn = document.getElementById('upload-media');
         let media_input_ele = document.getElementById('media-file');
 
         media_input_ele.addEventListener('change', event =>{
+
+            document.getElementById('image-charts').innerHTML = ``;
 
             let preview_div = document.getElementsByClassName('preview')[0];
             preview_div.innerHTML = '<h3> SELECT A FILE Less than 5MB !!!</h3>';

@@ -19,7 +19,10 @@ import tensorflow as tf  # for creating deep neural networks using Keras Fronten
 import tensorflow_hub as hub  # importing hub to use google's pre-trained model(yamnet)
 import numpy as np  # using numpy's efficient matrix/arrays operations
 import csv  # reading csv files
+import os
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt  # for plotting graphs
 from IPython.display import Audio  # for playing audio files in notebooks
 import scipy as scipy
@@ -36,6 +39,7 @@ model = hub.load('https://tfhub.dev/google/yamnet/1')
 
 
 # Find the name of the class with the top score when mean-aggregated across frames.
+# change this to adjust audio class
 def class_names_from_csv(class_map_csv_text):
     """Returns list of class names corresponding to score vector."""
     class_names = []
@@ -45,6 +49,10 @@ def class_names_from_csv(class_map_csv_text):
             class_names.append(row['display_name'])
 
     return class_names
+
+# extracting original class names from the CSV file
+class_map_path = model.class_map_path().numpy()
+class_names = class_names_from_csv(class_map_path)
 
 
 # Add a method to verify and convert a loaded audio is on the proper sample_rate (16K),
@@ -72,17 +80,20 @@ def wav_preprocess(wav_file_name):
     print(f'Sample rate: {sample_rate} Hz')
     print(f'Total duration: {duration:.2f}s')
     print(f'Size of the input : {len(wav_data)}')
+    size = len(wav_data)
 
     if len(wav_data.shape) == 1:
         print("The audio is mono.")
+        string = "The audio is mono."
     elif len(wav_data.shape) == 2:
         print("The audio is stereo.")
         print(" Converting the audio to mono (by averaging the two channels) for being processsed by Yamnet:")
+        string = "The audio is mono."+ " Converting the audio to mono (by averaging the two channels) for being processsed by Yamnet:"
         wav_data = wav_data.mean(axis=1)
     else:
         print("The audio format is not recognized.")
-
-    return wav_data
+        string = "The audio format is not recognized."
+    return wav_data ,sample_rate, duration, size , string
 
 
 def predict_class(wav_data):
@@ -120,7 +131,10 @@ def bar_chart(scores):
     plt.xlabel('Mean Scores')
     plt.title('Top 10 YAMNet Class Predictions')
     plt.gca().invert_yaxis()  # To display the highest score at the top
-    plt.show()
+    plt.savefig(os.path.join('static', 'bar_chart.png'))
+    plt.close()
+
+    #plt.show()
 
     # In this script, [::-1] is used after np.argsort(mean_scores)[-10:] to reverse the order of the indices,
     # so they are sorted by score in descending order. This, combined with the invert_yaxis(),
@@ -130,17 +144,27 @@ def bar_chart(scores):
 
 def wave_chart(waveform):
     # Plot the waveform.
+    plt.figure(figsize=(10, 6))
     plt.plot(waveform)
     plt.xlim([0, len(waveform)])
-    plt.show()
+    plt.title('Waveform representation of Sound (Averaged Mono-channel')
+    plt.xlabel('Time in seconds')
+    #plt.show()
+    plt.savefig(os.path.join('static', 'waveform.png'))
+    plt.close()
 
     return None
 
 def spectrogram(spectrogram_np):
     # Plot the log-mel spectrogram (returned by the model)
-
+    plt.figure(figsize=(10, 6))
+    plt.title('Mel-Spectrogram')
+    plt.xlabel('Frequency')
     plt.imshow(spectrogram_np.T, aspect='auto', interpolation='nearest', origin='lower')
-    plt.show()
+    plt.savefig(os.path.join('static', 'spectrogram.png'))
+    plt.close()
+
+    #plt.show()
 
     return None
 
@@ -148,6 +172,9 @@ def graph(scores, scores_np):
     mean_score = np.mean(scores, axis = 0)
     top_n = 10
     top_class_indices = np.argsort(mean_score)[::-1][:top_n]
+    plt.figure(figsize=(10, 6))
+    plt.title('Representation of confidence scores of network across different classes')
+    plt.xlabel('__')
     plt.imshow(scores_np[:, top_class_indices].T, aspect='auto', interpolation= 'nearest' , cmap= 'gray_r')
 
     # patch_padding = (PATCH_WINDOW_SECONDS / 2) / PATCH_HOP_SECONDS
@@ -159,25 +186,34 @@ def graph(scores, scores_np):
     plt.yticks(yticks, [class_names[top_class_indices[x]] for x in yticks])
     _ = plt.ylim(-0.5 + np.array([top_n, 0]))
 
-    plt.show()
+    plt.savefig(os.path.join('static', 'graph.png'))
+    plt.close()
+
+    #plt.show()
     return None
 
 
 
-# extracting original class names from the CSV file
-class_map_path = model.class_map_path().numpy()
-class_names = class_names_from_csv(class_map_path)
+def main1 (wav_file_name):
+    """
+    this function takes care of communicating with the front end and calling all the helper functions
+    in the sequence and returns sample rate, duration, size, and print information
+    """
 
-# get the audio file from the front end
-# wav_file = audio file fetched from front end via flask
-wav_file_name = 'drill.wav'
-wav_data = wav_preprocess(wav_file_name)
+    # get the audio file from the front end
+    #wav_file_name = file_path
+    #wav_file_name = 'drill.wav'
+    print(wav_file_name)
+    wav_data ,sample_rate, duration, size , string = wav_preprocess(wav_file_name)
+    #wav_data = wav_preprocess(wav_file_name)
+    # output of the model
+    infered_class, scores, scores_np, waveform, spectrogram_np = predict_class(wav_data)
 
-# output of the model
-infered_class, scores, scores_np, waveform, spectrogram_np = predict_class(wav_data)
+    # visualization and saving to images
+    bar_chart(scores)
+    wave_chart(waveform)
+    spectrogram(spectrogram_np)
+    graph(scores, scores_np)
 
-# visualization
-bar_chart(scores)
-wave_chart(waveform)
-spectrogram(spectrogram_np)
-graph(scores, scores_np)
+    #return None
+    return sample_rate, duration, size, string
