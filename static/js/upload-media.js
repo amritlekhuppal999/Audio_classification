@@ -18,7 +18,7 @@ window.onload = ()=>{
 
     function formSubmit(upload_form){
 
-        document.getElementById('upload-media').disable = true;
+        document.getElementById('upload-media').disabled = true;
 
         let media_input_ele = document.getElementById('media-file');
         let media_file = media_input_ele.files[0];
@@ -32,12 +32,12 @@ window.onload = ()=>{
         //
         if(media_file==undefined || media_file.size == 0){
             document.getElementById('error-window').innerHTML = 'No file selected';
-            document.getElementById('upload-media').disable = false;
+            document.getElementById('upload-media').disabled = false;
             return false;
         }
         if(media_file.size > 5000000){
             document.getElementById('error-window').innerHTML = 'File size greater than 5MB!';
-            document.getElementById('upload-media').disable = false;
+            document.getElementById('upload-media').disabled = false;
             return false;
         }
 
@@ -65,7 +65,7 @@ window.onload = ()=>{
                     // return response.text();
                 }
                 else alert("Unable to submit form. Try again later.");
-                document.getElementById('upload-media').disable = false;
+                document.getElementById('upload-media').disabled = false;
             })
             .then(data =>{
                 console.log(data);
@@ -99,7 +99,7 @@ window.onload = ()=>{
             .catch(error =>{
                 console.log('Something went wrong.', error);
                 document.getElementById('error-window').innerHTML = error;
-                document.getElementById('upload-media').disable = false;
+                document.getElementById('upload-media').disabled = false;
             });
     }
 };
